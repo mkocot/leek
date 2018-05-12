@@ -35,13 +35,12 @@ def fetch_and_add():
     for hit in feed.parse():
         try:
             logger.info('Adding: %s', hit.title)
-            if hit.infoHash not in conf.seen:
-                torrent = bckend.add_torrent(hit.magnetURI)
-                conf.seen[hit.infoHash] = True
-            else:
-                logger.info('Torrent already in queue')
+            torrent = bckend.add_torrent(hit.link)
+            if hit.link in conf.seen:
+                del conf.seen[hit.hash]
         except Exception:
-            logger.exception('Failed: %s', hit.title)
+            logger.exception('Failed: %s', hit)
+            conf.seen[hit.hash] = (hit.title, hit.link)
 
 def run_loop():
     while True:

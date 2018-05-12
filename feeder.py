@@ -1,6 +1,9 @@
 import feedparser
 import collections
 import re
+import urllib
+import hashlib
+import logging
 
 
 class FeederItem(object):
@@ -38,21 +41,45 @@ class FeederItem(object):
             return False
 
 
-TorrentInfo = collections.namedtuple('TorrentInfo',
-                                     ['title', 'infoHash', 'magnetURI'])
+class TorrentInfo(object):
+    title = ''
+    link = ''
+
+    def __init__(self, title, link, hash):
+        if not title:
+            raise ValueError('title')
+
+        if not link:
+            raise ValueError('link')
+
+        if not hash:
+            hash = hashlib.sha256(link)
+            print('Generate: Hash({}) = {}'.format(link, hash))
+        self.hash = hash
+        self.title = title
+        self.link = link
+
+    def __str__(self):
+        return 'Torrent(link={}, hash={}, title={})'.format(
+            self.link, self.hash, self.title)
+
+    def __repr__(self):
+        return self.__str__()
 
 
 class Feeder(object):
     feeds = []
+    logger = logging.getLogger('Feeder')
 
     def add_feed(self, x):
         self.feeds.append(FeederItem(**x))
 
-    def parse(self):
+    def parse(self) -> [TorrentInfo]:
         result = []
         for f in self.feeds:
             urls = isinstance(f.url, list) and f.url or [f.url]
             for url in urls:
+                self.logger.info('Loading info: %s', url)
                 parse = feedparser.parse(url)
                 # if entries is empty, then loading data failed
                 result.extend([
@@ -61,27 +88,34 @@ class Feeder(object):
                 ])
         return result
 
+    @staticmethod
+    def __is_link_ok(link):
+        return link.endswith('.torrent') \
+               or link.startswith('magnet://')
+
     def convert_entry(self, entry, f):
         # hacky wacky
-        torrentHash = None
-        magnet = entry.link
+        link = [
+            l.href for l in entry.links
+            if l.type == 'application/x-bittorrent'
+            or self.__is_link_ok(l.href)
+        ]
+        link = len(link) and link[0]
+        hash = None
         if not f.link_from:
-            if magnet and (not magnet.endswith('.torrent') and not magnet.startswith('magnet://')):
-                magnet = None
-
             for k, v in entry.items():
-                if torrentHash and magnet:
+                if link and hash:
                     break
-                if 'infohash' in k:
-                    torrentHash = v
+                if 'hash' in k:
+                    hash = v
                 if 'magnet' in k:
-                    magnet = v
+                    if not link and self.__is_link_ok(v):
+                        link = v
         else:
-            magnet = entry[f.link_from]
+            link = entry.get(f.link_from, None)
 
-        if not torrentHash:
-            print('W', 'Empty hash, replace with magnet link')
-            torrentHash = magnet
-
-        return TorrentInfo(
-            infoHash=torrentHash, magnetURI=magnet, title=entry.title)
+        #if link:
+        #    link = urllib.parse.quote(link, r'()\./_-:')
+        #else:
+        #    print(entry)
+        return TorrentInfo(entry.title, link, hash)
