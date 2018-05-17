@@ -53,7 +53,7 @@ class TorrentInfo(object):
             raise ValueError('link')
 
         if not hash:
-            hash = hashlib.sha256(link)
+            hash = hashlib.sha256(link.encode('utf-8')).hexdigest()
             print('Generate: Hash({}) = {}'.format(link, hash))
         self.hash = hash
         self.title = title
@@ -79,13 +79,16 @@ class Feeder(object):
         for f in self.feeds:
             urls = isinstance(f.url, list) and f.url or [f.url]
             for url in urls:
-                self.logger.info('Loading info: %s', url)
-                parse = feedparser.parse(url)
-                # if entries is empty, then loading data failed
-                result.extend([
-                    self.convert_entry(entry, f) for entry in parse.entries
-                    if f.accept_entry(entry)
-                ])
+                try:
+                    self.logger.info('Loading info: %s', url)
+                    parse = feedparser.parse(url)
+                    # if entries is empty, then loading data failed
+                    result.extend([
+                        self.convert_entry(entry, f) for entry in parse.entries
+                        if f.accept_entry(entry)
+                    ])
+                except:
+                    self.logger.exception('Failed url: %s', url)
         return result
 
     @staticmethod
