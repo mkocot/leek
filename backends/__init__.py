@@ -1,4 +1,4 @@
-from .backend import Torrent, Backend
+from .backend import Torrent, TorrentInfo, Backend
 from . import backend_transmission
 from . import backend_dummy
 

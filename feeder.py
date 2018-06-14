@@ -2,9 +2,8 @@ import feedparser
 import collections
 import re
 import urllib
-import hashlib
 import logging
-
+from backends import TorrentInfo
 
 class FeederItem(object):
     url = ''
@@ -39,32 +38,6 @@ class FeederItem(object):
         except AttributeError as err:
             print('Invalid entry', err)
             return False
-
-
-class TorrentInfo(object):
-    title = ''
-    link = ''
-
-    def __init__(self, title, link, hash):
-        if not title:
-            raise ValueError('title')
-
-        if not link:
-            raise ValueError('link')
-
-        if not hash:
-            hash = hashlib.sha256(link.encode('utf-8')).hexdigest()
-            print('Generate: Hash({}) = {}'.format(link, hash))
-        self.hash = hash
-        self.title = title
-        self.link = link
-
-    def __str__(self):
-        return 'Torrent(link={}, hash={}, title={})'.format(
-            self.link, self.hash, self.title)
-
-    def __repr__(self):
-        return self.__str__()
 
 
 class Feeder(object):
@@ -117,8 +90,4 @@ class Feeder(object):
         else:
             link = entry.get(f.link_from, None)
 
-        #if link:
-        #    link = urllib.parse.quote(link, r'()\./_-:')
-        #else:
-        #    print(entry)
         return TorrentInfo(entry.title, link, hash)
