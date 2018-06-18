@@ -15,6 +15,6 @@ class BackendTransmission(Backend):
         proper_opener.addheaders = [('User-agent', 'transmission-rss/0.0 [python]')]
         urllib.request.install_opener(proper_opener)
 
-    def add_torrent(self, address, paused=True):
-        torrent = self.client.add_torrent(address, paused=paused)
+    def add_torrent(self, torrent, paused=True):
+        torrent = self.client.add_torrent(torrent.link, paused=paused)
         return Torrent(torrent.hashString)
