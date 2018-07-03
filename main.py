@@ -1,4 +1,4 @@
-#!/usrb/bin/env python3
+#!/usr/bin/env python3
 import feeder
 import config
 import backends
