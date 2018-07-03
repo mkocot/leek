@@ -47,7 +47,7 @@ class Feeder(object):
     def add_feed(self, x):
         self.feeds.append(FeederItem(**x))
 
-    def parse(self) -> [TorrentInfo]:
+    def parse(self):
         result = []
         for f in self.feeds:
             urls = isinstance(f.url, list) and f.url or [f.url]
