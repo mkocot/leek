@@ -12,7 +12,7 @@ class BackendTransmission(Backend):
         # with default values. This is 'ugly' way but
         #  library soesn't allow to change it gently
         proper_opener = urllib.request.build_opener()
-        proper_opener.addheaders = [('User-agent', 'transmission-rss/0.0 [python]')]
+        proper_opener.addheaders = [('User-agent', 'leek/0.0 [python]')]
         urllib.request.install_opener(proper_opener)
 
     def add_torrent(self, torrent, paused=True):
