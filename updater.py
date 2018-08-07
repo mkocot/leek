@@ -36,7 +36,7 @@ class Cache(object):
         # w d h m s
         staleRecordsString = conf['global'].get('stale-after', '1w')
 
-        self._staleRecordsDelta = timedelta(**{_TIME_S2L[match[2].lower()]:int(match[1]) for match in finditer(r'(\d+)([wdhms]{1})', staleRecordsString)})
+        self._staleRecordsDelta = timedelta(**{_TIME_S2L[match.group(2).lower()]:int(match.group(1)) for match in finditer(r'(\d+)([wdhms]{1})', staleRecordsString)})
 
     # used for testing
     def _now(self):
