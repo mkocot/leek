@@ -5,4 +5,5 @@ class BackendDummy(Backend):
         super().__init__(conf)
 
     def add_torrent(self, url, paused=True):
+        print('DUMMY BACKEND: Adding torrent {}'.format(url))
         return Torrent('None')
