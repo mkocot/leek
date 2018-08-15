@@ -4,7 +4,11 @@ import shelve
 class StaticConfig(dict):
     def __init__(self, file):
         self.file = file
-        self.update(toml.load(self.file))
+        self.update({'global': {}, 'feed':{}})
+        try:
+            self.update(toml.load(self.file))
+        except FileNotFoundError:
+            pass
 
     def __setitem__(self, a, b):
         raise Exception("Set value not supported")

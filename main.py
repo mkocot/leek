@@ -7,21 +7,22 @@ import logging
 import sys
 import signal
 import argparse
+import xdgpathlib
 from updater import Updater
+
+xdgpathlib.setAppName('leek')
 
 logger = logging.getLogger()
 
 logger.addHandler(logging.StreamHandler(stream=sys.stderr))
 logger.setLevel(logging.DEBUG)
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--config', default='config.toml')
-args = parser.parse_args()
+configPath = xdgpathlib.appConfigDir('config.toml')
 
-conf = config.config(args.config)
+conf = config.config(configPath)
 
-logger.setLevel(conf['global']['log_level'].upper())
-logoutput = conf['global']['log']
+logger.setLevel(conf['global'].get('log_level', 'info').upper())
+logoutput = conf['global'].get('log', 'stderr').lower()
 
 if logoutput == 'stderr':
     logger.handlers.clear()
@@ -34,6 +35,6 @@ def run_loop():
         logger.debug('Checking updates')
         updater.fetch_and_add()
         logger.debug('Checking done')
-        time.sleep(conf['global']['refresh'])
+        time.sleep(conf['global'].get('refresh', 600))
 
 run_loop()

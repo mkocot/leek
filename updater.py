@@ -6,6 +6,7 @@ from datetime import timedelta, datetime as dt
 from re import finditer
 from backends import TorrentInfo, create
 from itertools import chain
+import xdgpathlib
 
 _TIME_S2L = {'d':'days', 'h':'hours', 'm':'minutes', 's':'seconds', 'w':'weeks'}
 
@@ -32,7 +33,7 @@ class Cache(object):
     # _seen - cache
     def __init__(self, conf):
         self._logger = logging.getLogger(__class__.__name__)
-        self._seen = shelve.open(conf['global'].get('seen', 'seen.cache'))
+        self._seen = shelve.open(conf['global'].get('seen', xdgpathlib.appCacheDir('seen.cache', True)))
         # w d h m s
         staleRecordsString = conf['global'].get('stale-after', '1w')
 
@@ -86,7 +87,7 @@ class Updater(object):
         self.conf = conf
         self.logger = logging.getLogger(__class__.__name__)
         self.feed = feeder.Feeder()
-        self.bckend =  create(conf['global']['backend'], conf)
+        self.bckend =  create(conf['global'].get('backend', 'dummy'), conf)
         for f in conf['feed']:
             if f.get('enabled', True):
                 self.feed.add_feed(f)
