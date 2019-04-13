@@ -1,7 +1,7 @@
 import feedparser
 import collections
 import re
-import urllib
+from urllib.request import urlopen
 import logging
 from backends import TorrentInfo
 
@@ -54,7 +54,10 @@ class Feeder(object):
             for url in urls:
                 try:
                     self.logger.info('Loading info: %s', url)
-                    parse = feedparser.parse(url)
+                    content = self.download(url)
+                    # it's probably hanging there for some obscure reason
+                    # that's why we are passing raw text only
+                    parse = feedparser.parse(content)
                     # if entries is empty, then loading data failed
                     result.extend([
                         self.convert_entry(entry, f) for entry in parse.entries
@@ -63,6 +66,14 @@ class Feeder(object):
                 except:
                     self.logger.exception('Failed url: %s', url)
         return result
+    
+    def download(self, url):
+        """
+        We ignore any errors that could be returned here.
+        Any reported failure means this url need to be parsed again later
+        """
+        with urlopen(url, timeout=10) as httpsrc:
+            return httpsrc.read()
 
     @staticmethod
     def __is_link_ok(link):
